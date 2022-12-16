@@ -1,4 +1,31 @@
-# Rust
----
+# Ownership
 
-This repository is projects of learning rust.
+## 所有权规则
+
+> 1. Rust 中的每一个值都有一个所有者（owner）。
+> 2. 值在任一时刻有且只有一个所有者。
+> 3. 当所有者（变量）离开作用域，这个值将会被丢弃。
+
+## 内存与分配
+
+```Rust
+{
+    let s = String::from("hello world"); // 在此处起，s开始有效
+}
+// s 不再有效
+```
+当拥有内存的变量离开作用域时，内存会被自动释放。
+
+### 移动
+
+```Rust
+{
+    let s1 = String::from("hello s1");
+    let s2 = s1;
+
+    println!("{}", s1);
+}
+```
+这段代码会报错，因为在 `let s2 = s1` 之后 `s1` 被认为不再有效。这也意味着 Rust 不需要在 `s1` 离开作用域后清理任何东西。
+
+当确实需要深拷贝时，可以使用 `clone`
