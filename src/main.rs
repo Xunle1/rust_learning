@@ -9,6 +9,17 @@ fn main() {
     // const THREE_HOURS_IN_SECONDS: u32 = 60 * 60 * 3;
     // println!("three hours equals {THREE_HOURS_IN_SECONDS} seconds")
 
+    // Shadowing
+    // let x = 2;
+    // let x = x + 1;
+    // {
+    //     let x = x * 2;
+    //     println!("{x}");
+    // }
+    // println!("{x}");
+    // let x = "hello";
+    // println!("{x}");
+
     // Tuple
     // let tup: (i32, f64, u8) = (500, 6.4, 1);
     // let (x, y, z) = tup;
@@ -17,7 +28,7 @@ fn main() {
     // let five_hundred = tup.0;
     // let six_point_four = tup.1;
     // let one = tup.2;
-    // println!("{five_hundred}, {six_point_four}, {one}")
+    // println!("{five_hundred}, {six_point_four}, {one}");
 
     // Array
     // let a = [3; 5]; // 声明数组大小为5，初始值为3
@@ -28,7 +39,6 @@ fn main() {
     // let (x, y) = plus_one(1, 2);
     // println!("x is {x}, y is {y}");
 
-    
     // Control Flow
     control_flow()
 }
@@ -47,7 +57,7 @@ fn control_flow() {
     // let mut counter = 0;
     // let y = loop {
     //     counter += 1;
-        
+
     //     if counter == 10 {
     //         break counter * 2;
     //     }
@@ -75,5 +85,4 @@ fn control_flow() {
     //     counter += 1;
     // }
     // println!("End count: {counter}")
-
 }
