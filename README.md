@@ -66,7 +66,7 @@ adder
 ├── Cargo.lock
 ├── Cargo.toml
 ├── src
-│   └── lib.rs
+│   └── lib.rs
 └── tests
     └── integration_test.rs
 ```
@@ -99,7 +99,7 @@ pub fn add_two(v: i32) -> i32 {
 ├── Cargo.lock
 ├── Cargo.toml
 ├── src
-│   └── lib.rs
+│   └── lib.rs
 └── tests
     ├── common.rs
     └── integration_test.rs
@@ -111,10 +111,10 @@ pub fn add_two(v: i32) -> i32 {
 ├── Cargo.lock
 ├── Cargo.toml
 ├── src
-│   └── lib.rs
+│   └── lib.rs
 └── tests
     ├── common
-    │   └── mod.rs
+    │    └── mod.rs
     └── integration_test.rs
 ```
 
@@ -131,4 +131,43 @@ fn test_add_two() {
 	let v = tests::add_two(1);
 	assert_eq(v, 3);
 }
+```
+
+## 控制测试运行
+
+指定测试线程数量：
+
+```shell
+cargo test -- --test-thread=1
+```
+
+显示函数输出：
+
+```shell
+cargo test -- --show-output
+```
+
+指定名称运行部分测试：
+
+```shell
+cargo test $TESTS_NAME
+```
+
+这条命令会运行名称包含 `$TESTS_NAME` 在内的模块和函数。
+
+忽略某些测试：
+
+```rust
+#[test]
+#[ignore]
+fn test () {
+	...
+}
+```
+
+使用 `#[ignore]` 注解来排除测试，只运行被忽略的测试和包括被忽略的测试一起执行使用一下命令：
+
+```shell
+cargo test -- --ignored
+cargo test -- --include-ignored
 ```
