@@ -127,7 +127,8 @@ impl<T> Deref for MyBox<T> {
 
 ## `Rc<T>` 引用计数智能指针
 
-当一个值可能会有多个拥有者的时候，需要使用类型 `Rc<T>`。
+当一个值可能会有多个拥有者的时候，需要使用类型 `Rc<T>`，Rc 只能接收不可变引用，通过不可变引用使多个使用
+者共享只读数据。
 
 ```rust
 enum List {
@@ -152,3 +153,111 @@ fn main() {
     println!("count after c goes out of scope = {}", Rc::strong_count(&a));
 }
 ```
+
+## `RefCell<T>` 和内部可变性模式
+
+**内部可变性**允许你即使在有不可变引用的地方也可以修改数据。可以使用 `RefCell<T>` 在运行时记录借用，
+但如果在运行时违反了借用规则会抛出 panic。
+
+虽然 `push_to_immut` 参数列表为 `&ImmutOuter` 不可变引用，但通过 RefCell 的 `borrow_mut()` 
+获取了可变引用。
+
+```rust
+struct ImmutOuter {
+    inner: RefCell<Vec<String>>,
+}
+
+impl ImmutOuter {
+    fn new() -> ImmutOuter {
+        ImmutOuter {
+            inner: RefCell::new(vec![])
+        }
+    }
+}
+
+fn push_to_immut(immut: &ImmutOuter) {
+    let mut ref_mut = immut.inner.borrow_mut();
+    ref_mut.push(String::from("2"));
+}
+
+fn main() {
+    let immut: ImmutOuter = ImmutOuter::new();
+    println!("before push: {:?}", immut.inner.borrow());
+    push_to_immut(&immut);
+    println!("after push: {:?}", immut.inner.borrow());
+}
+```
+
+运行上面代码片段得到：
+
+```
+before push: []
+after push: ["2"]
+```
+
+如果违反了借用规则：
+
+```rust
+fn main() {
+    let a = String::from("str1");
+    let rc = RefCell::new(a);
+    let mut_ra1 = rc.borrow_mut();
+    let mut_ra2 = rc.borrow_mut(); 
+}
+```
+
+上面的代码片段能够通过编译，但是运行会抛出错误：
+
+```
+thread 'main' panicked at src/main.rs:68:22:
+already borrowed: BorrowMutError
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
+### 结合 `Rc<T>` 和 `RefCell<T>` 来拥有多个可变数据所有者
+
+Rc 只能使用不可变引用且允许对相同数据有多个所有者，而 RefCell 具有内部可变性。如果有一个存储了多个
+RefCell 的 Rc 就可以获得多个所有者并可以修改的值。
+
+```rust
+#[derive(Debug)]
+enum List {
+    Cons(Rc<RefCell<i32>>, Rc<List>),
+    Nil,
+}
+```
+
+将 `List` 改造一下，使用 `Rc<RefCell<i32>>` 替换 `i32`。
+
+```rust
+fn main() {
+    let value = Rc::new(RefCell::new(5));
+
+    let a = Rc::new(Cons(Rc::clone(&value), Rc::new(Nil)));
+    let b = Cons(Rc::new(RefCell::new(3)), Rc::clone(&a));
+    let c = Cons(Rc::new(RefCell::new(4)), Rc::clone(&a));
+
+    println!("a before = {:?}", a);
+    println!("b before = {:?}", b);
+    println!("c before = {:?}", c);
+
+    *value.borrow_mut() = 15;
+
+    println!("a after = {:?}", a);
+    println!("b after = {:?}", b);
+    println!("c after = {:?}", c);
+}
+```
+
+运行上面的代码得到结果：
+
+```
+a before = Cons(RefCell { value: 5 }, Nil)
+b before = Cons(RefCell { value: 3 }, Cons(RefCell { value: 5 }, Nil))
+c before = Cons(RefCell { value: 4 }, Cons(RefCell { value: 5 }, Nil))
+a after = Cons(RefCell { value: 15 }, Nil)
+b after = Cons(RefCell { value: 3 }, Cons(RefCell { value: 15 }, Nil))
+c after = Cons(RefCell { value: 4 }, Cons(RefCell { value: 15 }, Nil))
+```
+
+发现 value 被修改了，表面上不可变的 List 通过使用 RefCell 改变了内部的值。
